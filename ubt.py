@@ -64,7 +64,7 @@ class BotUpbit():
         self.prc_ttl = prc_ttl if prc_ttl < self.const_up else self.const_up
         self.prc_ttl = 9500000
         self.prc_lmt = prc_lmt if prc_ttl < self.const_up else prc_lmt - (prc_ttl - self.const_up)
-        prc_buy = self.prc_ttl / (len(self.q_l) * 3)
+        prc_buy = self.prc_ttl / (len(self.q_l) * 1.75)
         self.prc_buy = prc_buy if prc_buy > self.const_dn else self.const_dn
 
         if os.path.isfile(FILE_URL_TIKR_3M):
@@ -155,6 +155,10 @@ class BotUpbit():
                     ol_bool_sell = copy.deepcopy(self.o_l[symbol]['bool_sell'])
                     ol_70_position = copy.deepcopy(self.o_l[symbol]['70_position'])
                     sell_qty = bl_balance * (1 / ol_quantity_ratio)
+                    is_psb_sel_div = (cur_prc * sell_qty) > self.const_dn
+
+                    if (not is_psb_sel_div) and ol_quantity_ratio > 1:
+                        sell_qty = bl_balance * (1 / ol_quantity_ratio - 1)
 
                     if rsi <= 50 and ol_bool_sell:
                         self.ubt.sell_market_order(symbol, bl_balance)
@@ -174,6 +178,9 @@ class BotUpbit():
                         self.ubt.sell_market_order(symbol, sell_qty)
                         self.o_l[symbol]['quantity_ratio'] = ol_quantity_ratio - 1
                         self.o_l[symbol]['bool_sell'] = True
+
+                        if (not is_psb_sel_div) and ol_quantity_ratio > 1:
+                            self.o_l[symbol]['quantity_ratio'] = ol_quantity_ratio - 2
 
                         if self.o_l[symbol]['quantity_ratio'] == 0:
                             self.o_l[symbol] = {
