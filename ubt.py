@@ -168,7 +168,7 @@ class BotUpbit():
 
                         _ror = get_ror(ol_buy_price, cur_prc)
                         print(f'Sell - Symbol: {symbol}, Profit: {round(_ror, 4)}')
-                        sel_lst.append({'c': '[Sl] ' + symbol, 'r': round(_ror, 4)})
+                        sel_lst.append({'c': '[S] ' + symbol, 'r': round(_ror, 4)})
 
                     elif rsi >= 70 and ((ol_70_position == '70_down') or (ol_70_position == '70_up' and (rsi_prev < rsi))):
                         self.ubt.sell_market_order(symbol, sell_qty)
