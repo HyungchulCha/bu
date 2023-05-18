@@ -47,10 +47,10 @@ class BotUpbit():
             tn_d = int(((tn - tn_0).seconds) % 300)
             print(f'{tn_d} Second')
 
-            if tn_d <= 150:
-                time.sleep(300 - tn_d - 150)
-            else:
-                time.sleep(300 - tn_d + 150)
+            # if tn_d <= 150:
+            #     time.sleep(300 - tn_d - 150)
+            # else:
+            #     time.sleep(300 - tn_d + 150)
 
             self.bool_balance = True
 
@@ -107,7 +107,7 @@ class BotUpbit():
             tn = datetime.datetime.now()
             tn_0 = tn.replace(hour=0, minute=0, second=0)
             tn_d = int(((tn - tn_0).seconds) % 300)
-            time.sleep(300 - tn_d)
+            # time.sleep(300 - tn_d)
             self.bool_order = True
 
         _tn = datetime.datetime.now()
@@ -139,7 +139,7 @@ class BotUpbit():
                 if is_psb_sel and ol_bool_buy:
 
                     bl_balance = copy.deepcopy(bal_lst[symbol]['b'])
-                    ol_buy_price = copy.deepcopy(self.o_l[symbol]['buy_price'])
+                    ol_buy_price = float(copy.deepcopy(self.o_l[symbol]['buy_price']))
                     ol_quantity_ratio = copy.deepcopy(self.o_l[symbol]['quantity_ratio'])
                     ol_bool_sell = copy.deepcopy(self.o_l[symbol]['bool_sell'])
                     ol_70_position = copy.deepcopy(self.o_l[symbol]['70_position'])
@@ -155,9 +155,10 @@ class BotUpbit():
                             '70_position': ''
                         }
 
-                        _ror = get_ror(ol_buy_price, cur_prc)
-                        print(f'Sell - Symbol: {symbol}, Profit: {round(_ror, 4)}')
-                        sel_lst.append({'c': '[Sl] ' + symbol, 'r': round(_ror, 4)})
+                        print(ol_buy_price)
+                        # _ror = get_ror(ol_buy_price, cur_prc)
+                        # print(f'Sell - Symbol: {symbol}, Profit: {round(_ror, 4)}')
+                        # sel_lst.append({'c': '[Sl] ' + symbol, 'r': round(_ror, 4)})
 
                     elif rsi >= 70 and ((ol_70_position == '70_down') or (ol_70_position == '70_up' and (rsi_prev < rsi))):
                         self.ubt.sell_market_order(symbol, sell_qty)
@@ -173,9 +174,10 @@ class BotUpbit():
                                 '70_position': ''
                             }
 
-                        _ror = get_ror(ol_buy_price, cur_prc)
-                        print(f'Sell - Symbol: {symbol}, Profit: {round(_ror, 4)}')
-                        sel_lst.append({'c': '[S] ' + symbol, 'r': round(_ror, 4)})
+                        print(ol_buy_price)
+                        # _ror = get_ror(ol_buy_price, cur_prc)
+                        # print(f'Sell - Symbol: {symbol}, Profit: {round(_ror, 4)}')
+                        # sel_lst.append({'c': '[S] ' + symbol, 'r': round(_ror, 4)})
                 
 
                 if (rsi <= 30) and (rsi_prev > rsi) and (volume_osc > 0):
@@ -294,23 +296,23 @@ class BotUpbit():
 if __name__ == '__main__':
 
     bu = BotUpbit()
-    # bu.init_per_day()
-    # bu.stock_order()
+    bu.init_per_day()
+    bu.stock_order()
     # bu.all_sell_order()
 
-    while True:
+    # while True:
 
-        try:
+    #     try:
 
-            tn = datetime.datetime.now()
-            tn_start = tn.replace(hour=0, minute=0, second=0)
+    #         tn = datetime.datetime.now()
+    #         tn_start = tn.replace(hour=0, minute=0, second=0)
 
-            if tn >= tn_start and bu.bool_start == False:
-                bu.init_per_day()
-                bu.stock_order()
-                bu.bool_start = True
+    #         if tn >= tn_start and bu.bool_start == False:
+    #             bu.init_per_day()
+    #             bu.stock_order()
+    #             bu.bool_start = True
 
-        except Exception as e:
+    #     except Exception as e:
 
-            line_message(f"BotUpbit Error : {e}")
-            break
+    #         line_message(f"BotUpbit Error : {e}")
+    #         break

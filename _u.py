@@ -114,3 +114,4 @@ def get_qty(crnt_p, max_p):
 
 def get_ror(pv, nv, pr=1, pf=0.0005, spf=0):
     cr = ((nv - (nv * pf) - (nv * spf)) / (pv + (pv * pf)))
+    return cr * pr
