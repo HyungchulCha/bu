@@ -21,6 +21,7 @@ class BotUpbit():
         
         self.q_l = []
         self.b_l = []
+        self.r_l = []
         self.o_l = {}
 
         self.time_order = None
@@ -61,6 +62,7 @@ class BotUpbit():
         self.q_l = pyupbit.get_tickers("KRW")
         prc_ttl, prc_lmt, _, bal_lst  = self.get_balance_info(self.q_l)
         self.b_l = list(set(self.q_l + bal_lst))
+        self.r_l = list(set(bal_lst).difference(self.q_l))
         self.prc_ttl = prc_ttl if prc_ttl < self.const_up else self.const_up
         self.prc_ttl = 9500000
         self.prc_lmt = prc_lmt if prc_ttl < self.const_up else prc_lmt - (prc_ttl - self.const_up)
@@ -199,9 +201,10 @@ class BotUpbit():
                 if (rsi <= 30) and (rsi_prev > rsi) and (volume_osc > 0):
 
                     buy_qty = float(self.prc_buy / cur_prc)
+                    is_remain_symbol = symbol in self.r_l
                     is_psb_ord = self.prc_lmt > self.prc_buy
 
-                    if is_psb_ord:
+                    if is_psb_ord and (not is_remain_symbol):
 
                         self.ubt.buy_market_order(symbol, self.prc_buy)
                         ol_buy_price = copy.deepcopy(self.o_l[symbol]['buy_price'])
