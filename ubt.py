@@ -77,13 +77,7 @@ class BotUpbit():
 
         for tk in self.b_l:
             if not (tk in self.o_l):
-                self.o_l[tk] = {
-                    'bool_buy': False,
-                    'buy_price': 0,
-                    'quantity_ratio': 0,
-                    'bool_sell': False,
-                    '70_position': ''
-                }
+                self.get_tiker_data_init(tk)
 
         if self.prc_lmt < self.prc_buy:
             line_message('BotUpbit Insufficient Balance !!!')
@@ -140,21 +134,15 @@ class BotUpbit():
                 is_nothing = ol_bool_buy and ((not is_symbol_bal) or (is_symbol_bal and (cur_prc * bal_lst[symbol]['b'] < self.const_dn)))
 
                 if is_nothing:
-
-                    self.o_l[symbol] = {
-                        'bool_buy': False,
-                        'buy_price': 0,
-                        'quantity_ratio': 0,
-                        'bool_sell': False,
-                        '70_position': ''
-                    }
+                    self.get_tiker_data_init(symbol)
 
                 if is_psb_sel and ol_bool_buy:
 
                     bl_balance = copy.deepcopy(bal_lst[symbol]['b'])
                     ol_buy_price = float(copy.deepcopy(self.o_l[symbol]['buy_price']))
                     ol_quantity_ratio = copy.deepcopy(self.o_l[symbol]['quantity_ratio'])
-                    ol_bool_sell = copy.deepcopy(self.o_l[symbol]['bool_sell'])
+                    ol_bool_sell_1n = copy.deepcopy(self.o_l[symbol]['bool_sell_1n'])
+                    ol_bool_sell_2p = copy.deepcopy(self.o_l[symbol]['bool_sell_2p'])
                     ol_70_position = copy.deepcopy(self.o_l[symbol]['70_position'])
                     sell_qty = bl_balance * (1 / ol_quantity_ratio)
                     is_psb_sel_div = (cur_prc * sell_qty) > self.const_dn
@@ -162,15 +150,25 @@ class BotUpbit():
                     if (not is_psb_sel_div) and ol_quantity_ratio > 1:
                         sell_qty = bl_balance * (1 / ol_quantity_ratio - 1)
 
-                    if rsi <= 50 and ol_bool_sell:
+                    if rsi <= 50 and ol_bool_sell_1n:
                         self.ubt.sell_market_order(symbol, bl_balance)
-                        self.o_l[symbol] = {
-                            'bool_buy': False,
-                            'buy_price': 0,
-                            'quantity_ratio': 0,
-                            'bool_sell': False,
-                            '70_position': ''
-                        }
+                        self.get_tiker_data_init(symbol)
+
+                        _ror = get_ror(ol_buy_price, cur_prc)
+                        print(f'Sell - Symbol: {symbol}, Profit: {round(_ror, 4)}')
+                        sel_lst.append({'c': '[S] ' + symbol, 'r': round(_ror, 4)})
+
+                    elif (cur_prc / ol_buy_price) >= 1.02 and (not ol_bool_sell_2p):
+                        self.ubt.sell_market_order(symbol, sell_qty)
+                        self.o_l[symbol]['quantity_ratio'] = ol_quantity_ratio - 1
+                        self.o_l[symbol]['bool_sell_1n'] = True
+                        self.o_l[symbol]['bool_sell_2p'] = True
+
+                        if (not is_psb_sel_div) and ol_quantity_ratio > 1:
+                            self.o_l[symbol]['quantity_ratio'] = ol_quantity_ratio - 2
+
+                        if self.o_l[symbol]['quantity_ratio'] == 0:
+                            self.get_tiker_data_init(symbol)
 
                         _ror = get_ror(ol_buy_price, cur_prc)
                         print(f'Sell - Symbol: {symbol}, Profit: {round(_ror, 4)}')
@@ -179,20 +177,14 @@ class BotUpbit():
                     elif rsi >= 70 and ((ol_70_position == '70_down') or (ol_70_position == '70_up' and (rsi_prev < rsi))):
                         self.ubt.sell_market_order(symbol, sell_qty)
                         self.o_l[symbol]['quantity_ratio'] = ol_quantity_ratio - 1
-                        self.o_l[symbol]['bool_sell'] = True
+                        self.o_l[symbol]['bool_sell_1n'] = True
 
                         if (not is_psb_sel_div) and ol_quantity_ratio > 1:
                             self.o_l[symbol]['quantity_ratio'] = ol_quantity_ratio - 2
 
                         if self.o_l[symbol]['quantity_ratio'] == 0:
-                            self.o_l[symbol] = {
-                                'bool_buy': False,
-                                'buy_price': 0,
-                                'quantity_ratio': 0,
-                                'bool_sell': False,
-                                '70_position': ''
-                            }
-                            
+                            self.get_tiker_data_init(symbol)
+
                         _ror = get_ror(ol_buy_price, cur_prc)
                         print(f'Sell - Symbol: {symbol}, Profit: {round(_ror, 4)}')
                         sel_lst.append({'c': '[S] ' + symbol, 'r': round(_ror, 4)})
@@ -200,14 +192,14 @@ class BotUpbit():
 
                 if (rsi <= 30) and (rsi_prev > rsi) and (volume_osc > 0):
 
-                    buy_qty = float(self.prc_buy / cur_prc)
-                    is_remain_symbol = symbol in self.r_l
                     is_psb_ord = self.prc_lmt > self.prc_buy
+                    is_remain_symbol = symbol in self.r_l
+                    buy_qty = float(self.prc_buy / cur_prc)
 
                     if is_psb_ord and (not is_remain_symbol):
 
                         self.ubt.buy_market_order(symbol, self.prc_buy)
-                        ol_buy_price = copy.deepcopy(self.o_l[symbol]['buy_price'])
+                        ol_bool_buy = copy.deepcopy(self.o_l[symbol]['bool_buy'])
                         ol_quantity_ratio = copy.deepcopy(self.o_l[symbol]['quantity_ratio'])
 
                         if ol_bool_buy:
@@ -218,7 +210,8 @@ class BotUpbit():
                                 'bool_buy': True,
                                 'buy_price': cur_prc,
                                 'quantity_ratio': 2,
-                                'bool_sell': False,
+                                'bool_sell_1n': False,
+                                'bool_sell_2p': False,
                                 '70_position': ''
                             }
 
@@ -248,6 +241,18 @@ class BotUpbit():
         str_end = __tn.strftime('%Y/%m/%d %H:%M:%S')
 
         line_message(f'BotUpbit \nStart : {str_start}, \nEnd : {str_end}, \nTotal Price : {int_prc_ttl:,} KRW {sel_txt}')
+    
+
+    # Tiker Data Init
+    def get_tiker_data_init(self, tk):
+        self.o_l[tk] = {
+            'bool_buy': False,
+            'buy_price': 0,
+            'quantity_ratio': 0,
+            'bool_sell_1n': False,
+            'bool_sell_2p': False,
+            '70_position': ''
+        }
     
     
     # Strategy RSI
