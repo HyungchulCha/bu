@@ -205,7 +205,7 @@ class BotUpbit():
 
 
         save_file(FILE_URL_TIKR_3M, self.o_l)
-        print(self.o_l)
+        # print(self.o_l)
 
         sel_txt = ''
         for sl in sel_lst:
