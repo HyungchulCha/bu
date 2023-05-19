@@ -36,7 +36,7 @@ class BotUpbit():
         self.prc_buy = 0
 
         self.const_up = 500000000
-        self.const_up = 5000000
+        self.const_up = 7500000
         self.const_dn = 5500
 
     
@@ -66,7 +66,7 @@ class BotUpbit():
         self.r_l = list(set(bal_lst).difference(self.q_l))
         self.prc_ttl = prc_ttl if prc_ttl < self.const_up else self.const_up
         self.prc_lmt = prc_lmt if prc_ttl < self.const_up else prc_lmt - (prc_ttl - self.const_up)
-        prc_buy = self.prc_ttl / (len(self.q_l) * 4)
+        prc_buy = self.prc_ttl / (len(self.q_l) * 3)
         self.prc_buy = prc_buy if prc_buy > self.const_dn else self.const_dn
 
         if os.path.isfile(FILE_URL_TIKR_3M):
@@ -133,6 +133,8 @@ class BotUpbit():
                 ol_bool_buy = copy.deepcopy(self.o_l[symbol]['bool_buy'])
                 is_nothing = ol_bool_buy and ((not is_symbol_bal) or (is_symbol_bal and (cur_prc * bal_lst[symbol]['b'] < self.const_dn)))
 
+                print(symbol, rsi)
+
                 if is_nothing:
                     self.get_tiker_data_init(symbol)
 
@@ -157,7 +159,7 @@ class BotUpbit():
                         print(f'Sell - Symbol: {symbol}, Profit: {round(_ror, 4)}')
                         sel_lst.append({'c': '[S] ' + symbol, 'r': round(_ror, 4)})
 
-                    elif rsi >= 70 and ((ol_70_position == '70_down') or (ol_70_position == '70_up' and (rsi_prev < rsi))):
+                    elif rsi >= 70 and ((ol_70_position == '70_down') or (ol_70_position == '70_up' and (rsi_prev <= rsi))):
                         self.ubt.sell_market_order(symbol, sell_qty)
                         self.o_l[symbol]['quantity_ratio'] = ol_quantity_ratio - 1
                         self.o_l[symbol]['bool_sell'] = True
