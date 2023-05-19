@@ -115,7 +115,7 @@ class BotUpbit():
 
         for symbol in self.b_l:
 
-            df = self.strategy_rsi(self.gen_ubt_df(symbol, 'minute5', 30))
+            df = self.strategy_rsi(self.gen_ubt_df(symbol, 'minute5', 170))
             is_df = not (df is None)
 
             if is_df:
