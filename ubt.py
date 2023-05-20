@@ -36,7 +36,7 @@ class BotUpbit():
         self.prc_buy = 0
 
         self.const_up = 500000000
-        self.const_up = 7500000
+        self.const_up = 5000000
         self.const_dn = 5500
 
     
